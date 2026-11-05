@@ -20,7 +20,7 @@ This is an independent project and isn't affiliated with OpenJarvis, CallMeBot, 
 
 > **Status: early.** The automated tests use simulated Gmail, Jarvis and CallMeBot services. It hasn't yet been confirmed end to end on a real Mac with real accounts.
 >
-> **CallMeBot is full right now.** New users who message its bot get "This Bot is full", and its [move page](https://www.callmebot.com/mov/) says the new bot number will appear "in a few days". Until then, set `DELIVERY=mac` in your settings file to get free Mac notifications instead, and switch back to `whatsapp` once you have a key.
+> **CallMeBot is full right now.** New users who message its bot get "This Bot is full", and its [move page](https://www.callmebot.com/mov/) says the new bot number will appear "in a few days". Until then, set `DELIVERY=popup` in your settings file to get a free pop-up window on your Mac instead, and switch back to `whatsapp` once you have a key.
 
 ## How it works
 
@@ -74,7 +74,7 @@ If Google shows a redirect error, add `http://localhost:8789/callback` as a redi
 
 ### 3. Get your CallMeBot key
 
-If CallMeBot says "This Bot is full", skip this step for now and use `DELIVERY=mac` (see the note at the top).
+If CallMeBot says "This Bot is full", skip this step for now and use `DELIVERY=popup` (see the note at the top).
 
 Save **+34 621 371 153** as a contact and send it this on WhatsApp:
 
@@ -131,7 +131,7 @@ It then:
 |---|---|
 | See what happened | `cat ~/.openjarvis/email-whatsapp/run.log` |
 | Clear out a sender | `jarvis-mail --cleanup` |
-| Read the latest summary (Mac mode) | `cat ~/.openjarvis/email-whatsapp/latest-summary.txt` |
+| Read the latest summary (popup or Mac mode) | `cat ~/.openjarvis/email-whatsapp/latest-summary.txt` |
 | Change the times | Edit the hours in `install.sh`, then run it again |
 | Bring messages back after a pause | Send `resume` to the CallMeBot contact |
 | Remove everything | `./uninstall.sh` |
@@ -146,7 +146,8 @@ If your Mac is asleep at a scheduled time, the check runs when it wakes. If it's
 - **Busy inboxes are capped.** Each check covers the newest 40 emails and tells you when there are more in Gmail.
 - **Updating OpenJarvis can undo spam access.** Run `./install.sh` again after an update.
 - **Reply flags can miss things.** A small local model decides what's urgent, so treat the list as a nudge, not a guarantee.
-- **Mac notifications** may need Script Editor to be allowed in System Settings, then Notifications. The full text is always saved in `latest-summary.txt`.
+- **Mac notifications (`DELIVERY=mac`) are fiddly.** macOS only lists an app under System Settings, then Notifications, after that app has sent one, and scripts often can't trigger that. If nothing appears, use `DELIVERY=popup`, which needs no permission. A pop-up waits for you to click OK and closes itself after 10 minutes.
+- **The full text is always saved** in `~/.openjarvis/email-whatsapp/latest-summary.txt`.
 
 ## Security and privacy
 

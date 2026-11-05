@@ -28,6 +28,9 @@ STATE_FILE = APP_DIR / "state.json"
 SETTINGS_FILE = APP_DIR / "settings.env"
 LATEST_FILE = APP_DIR / "latest-summary.txt"
 WHATSAPP_KEYS = ("CALLMEBOT_PHONE", "CALLMEBOT_APIKEY")
+LOCAL_MODES = ("mac", "popup")
+POPUP_MAX_CHARS = 1500
+POPUP_WAIT_SECONDS = 600
 SETTING_PREFIXES = ("CALLMEBOT_", "DELIVERY", "CLEANUP_")
 MAX_EMAILS = 40
 MAX_BODY_CHARS = 1200
@@ -73,7 +76,7 @@ def delivery(settings):
 
 
 def missing_settings(settings):
-    if delivery(settings) == "mac":
+    if delivery(settings) in LOCAL_MODES:
         return []
     return [
         key
@@ -314,8 +317,36 @@ def send_mac(heading, text):
         raise RuntimeError("the Mac notification failed")
 
 
+def send_popup(heading, text):
+    """Free fallback that needs no notification permission: show a pop-up window.
+
+    The window waits for you to click OK, and closes itself after 10 minutes so a
+    scheduled run never hangs for good.
+    """
+    LATEST_FILE.write_text(f"{heading}\n{text}\n")
+    shown = text if len(text) <= POPUP_MAX_CHARS else text[:POPUP_MAX_CHARS] + "\n...\n(Full text: latest-summary.txt)"
+    # The text is passed as arguments, never pasted into the AppleScript itself.
+    result = subprocess.run(
+        [
+            "osascript",
+            "-e", "on run argv",
+            "-e", f'display dialog (item 2 of argv) with title (item 1 of argv) buttons {{"OK"}} default button "OK" giving up after {POPUP_WAIT_SECONDS}',
+            "-e", "end run",
+            heading,
+            shown,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=POPUP_WAIT_SECONDS + 60,
+    )
+    if result.returncode != 0:
+        raise RuntimeError("the pop-up window failed")
+
+
 def send_notification(settings, heading, text):
-    if delivery(settings) == "mac":
+    if delivery(settings) == "popup":
+        send_popup(heading, text)
+    elif delivery(settings) == "mac":
         send_mac(heading, text)
     else:
         send_whatsapp(settings, heading, text)

@@ -463,7 +463,38 @@ def test_mac_mode_needs_no_whatsapp_keys_and_passes_text_safely(app, monkeypatch
     assert "do shell script" in ew.LATEST_FILE.read_text()
 
 
+def test_popup_mode_passes_text_safely_truncates_and_saves_full_text(app, monkeypatch):
+    ew.SETTINGS_FILE.write_text("DELIVERY=popup\n")
+    calls = []
+    monkeypatch.setattr(
+        ew.subprocess, "run",
+        lambda cmd, **kw: calls.append((cmd, kw)) or types.SimpleNamespace(returncode=0, stdout="", stderr=""),
+    )
+    use_docs(monkeypatch, [doc("a")])
+    long_text = 'say "hi"; do shell script "rm -rf ~"\n' + "x" * 3000
+    monkeypatch.setattr(ew, "summarise", lambda emails: long_text)
+    ew.run()
+    cmd, kw = calls[-1]
+    assert app.sent == [] and cmd[0] == "osascript"
+    script = " ".join(cmd[1:7])
+    assert "display dialog" in script and "rm -rf" not in script and "giving up after" in script
+    assert len(cmd[-1]) < 1700 and "latest-summary.txt" in cmd[-1]
+    assert kw["timeout"] > ew.POPUP_WAIT_SECONDS
+    assert "x" * 3000 in ew.LATEST_FILE.read_text()
+
+
+def test_popup_failure_is_reported_and_not_marked_done(app, monkeypatch):
+    ew.SETTINGS_FILE.write_text("DELIVERY=popup\n")
+    monkeypatch.setattr(ew.subprocess, "run", lambda cmd, **kw: types.SimpleNamespace(returncode=1, stdout="", stderr="no"))
+    use_docs(monkeypatch, [doc("a")])
+    monkeypatch.setattr(ew, "summarise", lambda emails: "ok")
+    with pytest.raises(RuntimeError):
+        ew.run()
+    assert not ew.STATE_FILE.exists()
+
+
 def test_missing_settings_depends_on_delivery():
+    assert ew.missing_settings({"DELIVERY": "popup"}) == []
     assert ew.missing_settings({"DELIVERY": "mac"}) == []
     assert ew.missing_settings({}) == ["CALLMEBOT_PHONE", "CALLMEBOT_APIKEY"]
 
