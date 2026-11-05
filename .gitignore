@@ -1,0 +1,12 @@
+settings.env
+*.env
+!settings.example.env
+state.json
+run.log
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
