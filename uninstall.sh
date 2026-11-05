@@ -9,4 +9,5 @@ LABEL="com.openjarvis.email-whatsapp"
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/$LABEL.plist"
 rm -rf "$OJ_HOME/email-whatsapp"
+rm -f "$HOME/.local/bin/jarvis-mail"
 echo "Removed. To undo the spam change: git -C \"$OJ_HOME/src\" checkout src/openjarvis/connectors/gmail.py"

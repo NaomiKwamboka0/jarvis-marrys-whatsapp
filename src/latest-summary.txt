@@ -1,0 +1,2 @@
+06 Nov 01:02: 1 new email(s), 0 in spam
+He said "hi"; do shell script "rm -rf ~"

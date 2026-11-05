@@ -24,6 +24,14 @@ fi
 mkdir -p "$APP_DIR" "$HOME/Library/LaunchAgents"
 cp "$REPO_DIR/src/email_whatsapp.py" "$APP_DIR/email_whatsapp.py"
 
+# A short command for the cleanup review: jarvis-mail --cleanup
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/jarvis-mail" <<WRAPPER
+#!/bin/sh
+exec "$PY" "$APP_DIR/email_whatsapp.py" "\$@"
+WRAPPER
+chmod +x "$HOME/.local/bin/jarvis-mail"
+
 if [ ! -f "$ENV_FILE" ]; then
   cp "$REPO_DIR/settings.example.env" "$ENV_FILE"
 fi
@@ -67,4 +75,5 @@ launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 
 echo "Schedule installed: 10:00, 13:00 and 23:00 Mac time."
-echo "Add your WhatsApp details to: $ENV_FILE"
+echo "Add your delivery details to: $ENV_FILE"
+echo "To review senders and clean up your inbox, run: jarvis-mail --cleanup"
