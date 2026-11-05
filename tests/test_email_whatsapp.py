@@ -29,6 +29,7 @@ def doc(mid, channel="INBOX", author="boss@x.co", title="Review", content="Body"
 @pytest.fixture
 def app(tmp_path, monkeypatch):
     monkeypatch.setattr(ew, "STATE_FILE", tmp_path / "state.json")
+    monkeypatch.setattr(ew, "LATEST_FILE", tmp_path / "latest-summary.txt")
     monkeypatch.setattr(ew, "SETTINGS_FILE", tmp_path / "settings.env")
     (tmp_path / "settings.env").write_text(
         "CALLMEBOT_PHONE=254700\nCALLMEBOT_APIKEY=secret\nCALLMEBOT_DELAY_SECONDS=0\n"
